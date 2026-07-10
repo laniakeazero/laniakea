@@ -400,19 +400,20 @@
   /* Ambient + cursor-trail glitch artifacts */
   .glitch-artifact{
     position:fixed; z-index:5; pointer-events:none;
-    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.04em;
-    color:rgba(168,50,50,.7); white-space:nowrap; will-change:opacity, transform;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; letter-spacing:.04em;
+    color:rgba(168,50,50,.85); text-shadow:0 0 6px rgba(168,50,50,.35);
+    white-space:nowrap; will-change:opacity, transform;
   }
-  .glitch-artifact.ambient{ animation:glitchAmbient 2.4s ease-out forwards; }
+  .glitch-artifact.ambient{ animation:glitchAmbient 2.8s ease-out forwards; }
   @keyframes glitchAmbient{
     0%{ opacity:0; transform:translateY(2px) scale(.9); }
-    10%{ opacity:1; transform:translateY(0) scale(1.05); }
-    72%{ opacity:.6; }
-    100%{ opacity:0; transform:translateY(-12px) scale(.95); }
+    10%{ opacity:1; transform:translateY(0) scale(1.1); }
+    75%{ opacity:.7; }
+    100%{ opacity:0; transform:translateY(-14px) scale(.95); }
   }
   .glitch-artifact.trail{
-    font-size:11px; color:rgba(168,50,50,.8);
-    animation:glitchTrail .7s ease-out forwards;
+    font-size:12px; color:rgba(168,50,50,.9);
+    animation:glitchTrail .75s ease-out forwards;
   }
   @keyframes glitchTrail{
     0%{ opacity:.75; transform:translate(0,0) scale(1); }
@@ -793,7 +794,7 @@
   if(!prefersReducedMotion){
     // Ambient artifacts, confined to the page gutters so they never sit over content
     (function scheduleAmbient(){
-      const delay = 900 + Math.random() * 1400;
+      const delay = 500 + Math.random() * 900;
       setTimeout(()=>{
         const wrapEl = document.querySelector('.hero.wrap') || document.querySelector('.wrap');
         const gutter = wrapEl ? wrapEl.getBoundingClientRect().left : (window.innerWidth - 980) / 2;
@@ -804,6 +805,11 @@
             ? 6 + Math.random() * spread
             : window.innerWidth - 6 - Math.random() * spread;
           const y = 80 + Math.random() * Math.max(40, window.innerHeight - 120);
+          spawnArtifact(x, y, 'ambient');
+        } else {
+          // narrow viewport: no safe gutter, sprinkle low in the viewport instead
+          const x = 12 + Math.random() * Math.max(20, window.innerWidth - 24);
+          const y = window.innerHeight - 30 - Math.random() * 60;
           spawnArtifact(x, y, 'ambient');
         }
         scheduleAmbient();
@@ -819,9 +825,9 @@
 
       if(prefersReducedMotion) return;
       const now = performance.now();
-      if(now - lastTrailTime < 110) return;
+      if(now - lastTrailTime < 70) return;
       lastTrailTime = now;
-      if(Math.random() < 0.55){
+      if(Math.random() < 0.75){
         const dx = (Math.random() * 20 - 10) + 'px';
         const dy = (Math.random() * 14 + 8) + 'px';
         spawnArtifact(e.clientX + 8, e.clientY + 8, 'trail', { '--dx': dx, '--dy': dy });
@@ -890,11 +896,10 @@
     el.addEventListener('mouseenter', () => fx.setText(originalText));
   });
 
-  // One-shot decode-in: plays the same scramble effect once when plain text appears,
+  // Decode-in: plays the scramble effect whenever plain text becomes visible,
   // so body copy "decodes" like the headings instead of just fading up.
   function decodeText(el){
-    if(!el || el.dataset.decoded === '1') return;
-    el.dataset.decoded = '1';
+    if(!el) return;
     new TextScramble(el).setText(el.innerText);
   }
 
@@ -980,12 +985,9 @@
     ].join(',');
     const decodeIO = new IntersectionObserver((entries)=>{
       entries.forEach(e=>{
-        if(e.isIntersecting){
-          decodeText(e.target);
-          decodeIO.unobserve(e.target);
-        }
+        if(e.isIntersecting){ decodeText(e.target); }
       });
-    }, {threshold:.35});
+    }, {threshold:.2});
     document.querySelectorAll(decodeSelector).forEach(el=>decodeIO.observe(el));
   }
 
