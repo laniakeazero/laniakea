@@ -345,14 +345,22 @@
   .log-info{color:#6C6656;}
   .log-db{color:#B7C79A;}
   .log-ok{color:#9FC1E0;}
+  .log-warn{color:#D4A24C;}
+  .log-line{opacity:0; transform:translateX(-4px); animation:logIn .3s ease forwards;}
+  @keyframes logIn{ to{opacity:1; transform:translateX(0);} }
+
+  .run-btn:disabled{ opacity:.5; cursor:default; }
+  .run-btn:disabled:hover{ background:var(--stamp); }
 
   .scramble-ready{ font-family:'IBM Plex Mono', monospace; }
 
   .code-line{
     display:block; white-space:pre;
     opacity:0; transform:translateX(-8px);
-    transition:opacity .35s ease, transform .35s ease;
+    transition:opacity .35s ease, transform .35s ease, background-color .3s ease, box-shadow .3s ease;
   }
+  .code-line.hit-a{ background:rgba(159,193,224,.16); box-shadow:inset 3px 0 0 #9FC1E0; }
+  .code-line.hit-b{ background:rgba(212,162,76,.16); box-shadow:inset 3px 0 0 #D4A24C; }
   .code-line.in{opacity:1; transform:translateX(0);}
   .code-line .ln{display:inline-block; width:26px; color:#5C574B; user-select:none;}
   .tok-kw{color:#E28B7D;}
@@ -923,24 +931,49 @@
   });
 
   /* ---------- WOW-FEATURE 3: interactive RUN CODE console ---------- */
+  // Simulates two clients racing for the same slot, so the row-lock explained
+  // in the note below the code window is something you actually watch happen.
   const runBtn = document.getElementById('run-code-btn');
   const termOutput = document.getElementById('terminal-output');
   const logContainer = document.getElementById('log-container');
+
+  function flashCodeLines(nums, cls){
+    nums.forEach(n=>{
+      const line = document.querySelector(`#code-lines .code-line:nth-child(${n})`);
+      if(!line) return;
+      line.classList.add(cls);
+      setTimeout(()=> line.classList.remove(cls), 600);
+    });
+  }
+
+  function logLine(html){
+    const row = document.createElement('div');
+    row.className = 'log-line';
+    row.innerHTML = html;
+    logContainer.appendChild(row);
+  }
+
   if(runBtn){
-    runBtn.addEventListener('click', () => {
-      termOutput.style.height = '78px';
-      logContainer.innerHTML = `<span class="log-info">[INFO]</span> Executing async select_slot()...`;
-
-      setTimeout(() => {
-        logContainer.innerHTML += `<br><span class="log-db">[DB]</span> row_lock acquired (with_for_update=True)`;
-      }, 400);
-
-      setTimeout(() => {
-        logContainer.innerHTML += `<br><span class="log-ok">[SUCCESS]</span> state → BookingFSM.confirming · 4.2ms`;
+    const RACE_STEPS = [
+      { t: 0,    run: () => { logLine(`<span class="log-info">[INFO]</span> Клиент A: select_slot() — слот #14`); flashCodeLines([2,3], 'hit-a'); } },
+      { t: 220,  run: () => { logLine(`<span class="log-info">[INFO]</span> Клиент B: select_slot() — тот же слот #14`); flashCodeLines([2,3], 'hit-b'); } },
+      { t: 620,  run: () => { logLine(`<span class="log-db">[DB]</span> Клиент A: row_lock acquired (with_for_update=True)`); flashCodeLines([5,6], 'hit-a'); } },
+      { t: 880,  run: () => { logLine(`<span class="log-db">[DB]</span> Клиент B: ждёт освобождения блокировки строки…`); flashCodeLines([6], 'hit-b'); } },
+      { t: 1450, run: () => { logLine(`<span class="log-ok">[SUCCESS]</span> Клиент A → BookingFSM.confirming · 4.2ms`); flashCodeLines([12,13,16], 'hit-a');
         const cw = document.getElementById('code-window');
         cw.style.transform = 'scale(1.008)';
-        setTimeout(() => cw.style.transform = 'none', 120);
-      }, 900);
+        setTimeout(()=> cw.style.transform = 'none', 120);
+      } },
+      { t: 1750, run: () => { logLine(`<span class="log-db">[DB]</span> Клиент B: блокировка снята, slot.is_booked = True`); flashCodeLines([8], 'hit-b'); } },
+      { t: 2050, run: () => { logLine(`<span class="log-warn">[REJECTED]</span> Клиент B: «Слот уже заняли, выберите другой»`); flashCodeLines([9], 'hit-b'); } },
+    ];
+
+    runBtn.addEventListener('click', () => {
+      runBtn.disabled = true;
+      termOutput.style.height = '158px';
+      logContainer.innerHTML = '';
+      RACE_STEPS.forEach(step => setTimeout(step.run, step.t));
+      setTimeout(() => { runBtn.disabled = false; }, 2700);
     });
   }
 
