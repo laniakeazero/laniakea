@@ -400,18 +400,18 @@
   /* Ambient + cursor-trail glitch artifacts */
   .glitch-artifact{
     position:fixed; z-index:5; pointer-events:none;
-    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.04em;
-    color:rgba(168,50,50,.55); white-space:nowrap; will-change:opacity, transform;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.04em;
+    color:rgba(168,50,50,.7); white-space:nowrap; will-change:opacity, transform;
   }
   .glitch-artifact.ambient{ animation:glitchAmbient 2.4s ease-out forwards; }
   @keyframes glitchAmbient{
     0%{ opacity:0; transform:translateY(2px) scale(.9); }
-    10%{ opacity:.8; transform:translateY(0) scale(1); }
-    72%{ opacity:.45; }
+    10%{ opacity:1; transform:translateY(0) scale(1.05); }
+    72%{ opacity:.6; }
     100%{ opacity:0; transform:translateY(-12px) scale(.95); }
   }
   .glitch-artifact.trail{
-    font-size:10px; color:rgba(168,50,50,.65);
+    font-size:11px; color:rgba(168,50,50,.8);
     animation:glitchTrail .7s ease-out forwards;
   }
   @keyframes glitchTrail{
@@ -779,15 +779,17 @@
   if(!prefersReducedMotion){
     // Ambient artifacts, confined to the page gutters so they never sit over content
     (function scheduleAmbient(){
-      const delay = 1200 + Math.random() * 1800;
+      const delay = 900 + Math.random() * 1400;
       setTimeout(()=>{
-        const gutter = (window.innerWidth - 980) / 2;
-        if(gutter > 48){
+        const wrapEl = document.querySelector('.hero.wrap') || document.querySelector('.wrap');
+        const gutter = wrapEl ? wrapEl.getBoundingClientRect().left : (window.innerWidth - 980) / 2;
+        if(gutter > 16){
+          const spread = Math.max(6, gutter - 12);
           const onLeft = Math.random() < 0.5;
           const x = onLeft
-            ? 12 + Math.random() * (gutter - 40)
-            : window.innerWidth - 12 - Math.random() * (gutter - 40);
-          const y = 80 + Math.random() * (window.innerHeight - 120);
+            ? 6 + Math.random() * spread
+            : window.innerWidth - 6 - Math.random() * spread;
+          const y = 80 + Math.random() * Math.max(40, window.innerHeight - 120);
           spawnArtifact(x, y, 'ambient');
         }
         scheduleAmbient();
