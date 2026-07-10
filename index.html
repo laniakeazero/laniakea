@@ -173,23 +173,62 @@
   .chip:hover{border-color:var(--stamp); color:var(--ink); background:var(--paper-2);}
 
   /* Honest process flow */
-  .process{position:relative; margin-top:40px; padding-top:14px;}
-  .process-track{position:absolute; top:14px; left:0; right:0; height:2px; background:var(--line-strong);}
-  .process-fill{height:100%; width:0%; background:var(--stamp); transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
-  .process-steps{display:flex; justify-content:space-between; gap:14px; position:relative;}
-  .proc-step{flex:1; text-align:center; padding:0 6px; min-width:0;}
+  .process-divider{ border-top:1px dashed var(--line-strong); margin:64px 0 36px; }
+  .process-title{
+    display:inline-flex; align-items:center; background:var(--stamp); color:#fff;
+    border-bottom:none; padding:9px 18px; font-size:15px; margin-bottom:32px;
+    box-shadow:0 4px 0 0 rgba(28,27,25,.08);
+  }
+  .process-title::before{ display:none; }
+  .process{position:relative; margin-top:0; padding-top:16px;}
+  .process-flow{position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; z-index:1;}
+  .process-flow path{
+    fill:none; stroke:var(--stamp); stroke-width:2; stroke-linecap:round;
+    transition:stroke-dashoffset 1.6s cubic-bezier(.2,.8,.2,1);
+  }
+  .process-flow path.flowing{ animation:flowDash 1s linear infinite; }
+  @keyframes flowDash{ to{ stroke-dashoffset:-16; } }
+  .process-steps{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:56px 44px;
+    position:relative; padding:50px 6px 34px; z-index:2;
+  }
+  .proc-step{ text-align:center; min-width:0; transition:transform .3s ease; }
+  .proc-step:nth-child(1){ transform:translateY(-6px); }
+  .proc-step:nth-child(2){ transform:translateY(12px); }
+  .proc-step:nth-child(3){ transform:translateY(16px); }
+  .proc-step:nth-child(4){ transform:translateY(-10px); }
+  .proc-step:nth-child(5){ transform:translateY(-4px); }
+  .proc-step:nth-child(6){ transform:translateY(14px); }
   .proc-dot{
-    display:block; width:13px; height:13px; border-radius:50%; background:var(--paper);
-    border:2px solid var(--ink); margin:0 auto 22px; position:relative; z-index:2;
+    display:block; width:15px; height:15px; border-radius:50%; background:var(--paper);
+    border:2px solid var(--ink); margin:0 auto; position:relative; z-index:2;
     transform:scale(0); transition:transform .35s cubic-bezier(.34,1.56,.64,1), border-color .3s;
   }
-  .proc-dot.in{transform:scale(1); border-color:var(--stamp);}
-  .proc-txt b{display:block; font-size:16px; font-weight:700; margin-bottom:8px;}
-  .proc-txt span{font-size:13.5px; color:var(--ink-soft); display:block; line-height:1.5;}
+  .proc-dot.in{transform:scale(1); border-color:var(--stamp); animation:dotPulse 2.2s ease-in-out .6s infinite;}
+  @keyframes dotPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(168,50,50,.55); }
+    50%{ box-shadow:0 0 0 7px rgba(168,50,50,0); }
+  }
+  .proc-connector{ display:block; width:1px; height:18px; background:var(--line-strong); margin:0 auto; }
+  .proc-txt{
+    background:var(--paper-2); border:1px solid var(--line-strong);
+    padding:28px 24px 30px; transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+    /* The scramble effect rewrites innerHTML ~60x/sec; without containment,
+       Grid recomputes row/track sizing on every frame and can momentarily
+       measure a wrong (near-zero) content width, wrapping text one
+       fragment per line until it settles. contain isolates that churn. */
+    contain:layout style;
+  }
+  .proc-step:hover .proc-txt{ border-color:var(--stamp); transform:translateY(-4px); box-shadow:0 8px 16px rgba(28,27,25,.1); }
+  .proc-txt b{display:block; font-size:21px; font-weight:700; margin-bottom:11px;}
+  .proc-txt span{font-size:15.5px; color:var(--ink-soft); display:block; line-height:1.6;}
   @media(max-width:700px){
-    .process-steps{flex-wrap:wrap;}
-    .proc-step{flex:1 1 45%; margin-bottom:28px;}
-    .process-track{display:none;}
+    .process-steps{gap:36px 22px; padding:24px 4px;}
+    .proc-step{transform:none !important;}
+    .process-flow{display:none;}
+  }
+  @media(max-width:480px){
+    .process-steps{grid-template-columns:1fr;}
   }
 
   /* Timeline / journal */
@@ -654,15 +693,17 @@
       </div>
     </div>
 
-    <div class="g-title fade-up" style="margin-top:40px;">Как проходит работа</div>
+    <div class="process-divider fade-up"></div>
+    <div class="g-title process-title fade-up">Как проходит работа</div>
     <div class="process fade-up" id="process">
-      <div class="process-track"><div class="process-fill" id="process-fill"></div></div>
+      <svg class="process-flow" id="process-flow"><path id="process-flow-path"/></svg>
       <div class="process-steps">
-        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Заявка</b><span>Короткое описание задачи в Telegram или почте</span></div></div>
-        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Бриф</b><span>Созваниваемся, уточняем детали, сроки и бюджет</span></div></div>
-        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Разработка</b><span>Пишу код, показываю промежуточные результаты</span></div></div>
-        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Тест</b><span>Проверяем вместе на реальных сценариях</span></div></div>
-        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Прод</b><span>Разворачиваю на сервере, передаю в работу</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><span class="proc-connector"></span><div class="proc-txt"><b>Заявка</b><span>Короткое описание задачи в Telegram или почте</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><span class="proc-connector"></span><div class="proc-txt"><b>Бриф</b><span>Созваниваемся, уточняем детали, сроки и бюджет</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><span class="proc-connector"></span><div class="proc-txt"><b>Разработка</b><span>Пишу код, показываю промежуточные результаты</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><span class="proc-connector"></span><div class="proc-txt"><b>Тест</b><span>Проверяем вместе на реальных сценариях</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><span class="proc-connector"></span><div class="proc-txt"><b>Согласование</b><span>Показываю готовый результат, вношу правки по фидбэку</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><span class="proc-connector"></span><div class="proc-txt"><b>Прод</b><span>Разворачиваю на сервере, передаю в работу</span></div></div>
       </div>
     </div>
   </div>
@@ -872,19 +913,20 @@
       this.chars = '!<>-_\\/[]{}—=+*^?#________01';
       this.update = this.update.bind(this);
     }
-    setText(newText) {
+    setText(newText, onDone) {
       const oldText = this.el.innerText;
       const length = Math.max(oldText.length, newText.length);
       this.queue = [];
       for (let i = 0; i < length; i++) {
         const from = oldText[i] || '';
         const to = newText[i] || '';
-        const start = Math.floor(Math.random() * 20);
-        const end = start + Math.floor(Math.random() * 20);
+        const start = Math.floor(Math.random() * 12);
+        const end = start + Math.floor(Math.random() * 12);
         this.queue.push({ from, to, start, end });
       }
       cancelAnimationFrame(this.frameId);
       this.frame = 0;
+      this.onDone = onDone;
       this.update();
     }
     update() {
@@ -905,8 +947,20 @@
           output += from;
         }
       }
-      this.el.innerHTML = output;
-      if (complete === this.queue.length) return;
+      // Writing innerHTML on every rAF tick (60/sec) across many elements at
+      // once (e.g. a whole grid of cards decoding together) forces enough
+      // simultaneous layout recalculation that Chromium can momentarily
+      // mis-measure a Grid item's content width and wrap it one fragment
+      // per line until things settle. Halving the DOM write rate removes
+      // the thrashing and is visually indistinguishable.
+      const isFinal = complete === this.queue.length;
+      if (isFinal || this.frame % 2 === 0) {
+        this.el.innerHTML = output;
+      }
+      if (isFinal) {
+        if (this.onDone) { const cb = this.onDone; this.onDone = null; cb(); }
+        return;
+      }
       this.frameId = requestAnimationFrame(this.update);
       this.frame++;
     }
@@ -945,12 +999,45 @@
 
   // Decode-in: plays the scramble effect whenever plain text becomes visible,
   // so body copy "decodes" like the headings instead of just fading up.
+  //
+  // A big scroll jump (or just a normal fast flick) can cross the reveal
+  // threshold for a couple dozen elements in the same batch. Kicking off
+  // that many simultaneous 60fps innerHTML-rewriting animations at once
+  // is enough concurrent layout work that Chromium can momentarily
+  // mis-measure text width mid-reflow (seen as text collapsing to one
+  // fragment per line until it settles). A small concurrency-limited
+  // queue keeps only a handful of elements actively animating at any
+  // moment — everything still decodes, just as a steady stream instead
+  // of a stampede.
+  const decodeQueue = [];
+  let decodeActive = 0;
+  const MAX_CONCURRENT_DECODES = 4;
+  function pumpDecodeQueue(){
+    while(decodeActive < MAX_CONCURRENT_DECODES && decodeQueue.length){
+      const el = decodeQueue.shift();
+      decodeActive++;
+      el._decoding = true;
+      getScramble(el).setText(getOriginalText(el), () => {
+        el._decoding = false;
+        decodeActive--;
+        pumpDecodeQueue();
+      });
+    }
+  }
   function decodeText(el){
     if(!el) return;
+    // Already queued, or already the one actively animating (dequeued but
+    // not finished): skip. Re-dispatching an active element would call
+    // setText() again on the same shared TextScramble instance, which
+    // cancels its in-flight animation and overwrites onDone — the first
+    // dispatch's callback then never fires, permanently leaking a queue
+    // slot and leaving that element's animation interrupted forever.
+    if(el._decoding || decodeQueue.includes(el)) return;
     const now = performance.now();
     if(el._lastDecodeAt && now - el._lastDecodeAt < 500) return;
     el._lastDecodeAt = now;
-    getScramble(el).setText(getOriginalText(el));
+    decodeQueue.push(el);
+    pumpDecodeQueue();
   }
 
   /* ---------- WOW-FEATURE 2: kinetic 3D tilt on service cards ---------- */
@@ -1114,15 +1201,42 @@
   }, {threshold:.3});
   chipGroups.forEach(g=>chipIO.observe(g));
 
-  // Honest process flow: line draws, dots pop in sequence
+  // Honest process flow: a wandering line connects the (deliberately
+  // staggered) step dots, draws itself in, then keeps flowing.
   const processEl = document.getElementById('process');
   if(processEl){
-    const fill = document.getElementById('process-fill');
+    const flowSvg = document.getElementById('process-flow');
+    const flowPath = document.getElementById('process-flow-path');
     const dots = processEl.querySelectorAll('.proc-dot');
+
+    function drawProcessFlow(){
+      if(!flowSvg || !flowPath || !dots.length) return;
+      const box = processEl.getBoundingClientRect();
+      flowSvg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+      const pts = Array.from(dots).map(d=>{
+        const r = d.getBoundingClientRect();
+        return { x: r.left + r.width/2 - box.left, y: r.top + r.height/2 - box.top };
+      });
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for(let i=1;i<pts.length;i++){
+        const prev = pts[i-1], cur = pts[i];
+        const midX = (prev.x + cur.x) / 2;
+        d += ` C ${midX} ${prev.y}, ${midX} ${cur.y}, ${cur.x} ${cur.y}`;
+      }
+      flowPath.setAttribute('d', d);
+      const len = flowPath.getTotalLength();
+      flowPath.style.strokeDasharray = `${len}`;
+      flowPath.style.strokeDashoffset = `${len}`;
+    }
+    drawProcessFlow();
+    window.addEventListener('resize', drawProcessFlow);
+
     const processIO = new IntersectionObserver((entries)=>{
       entries.forEach(e=>{
         if(e.isIntersecting){
-          fill.style.width = '100%';
+          drawProcessFlow();
+          requestAnimationFrame(()=>{ flowPath.style.strokeDashoffset = '0'; });
+          setTimeout(()=> flowPath.classList.add('flowing'), 1650);
           dots.forEach((dot,i)=>{
             setTimeout(()=>dot.classList.add('in'), 200 + i*260);
           });
