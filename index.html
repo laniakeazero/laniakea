@@ -683,6 +683,20 @@
       intro.classList.add('hide');
       document.body.classList.remove('matrix-locked');
       setTimeout(()=> intro.remove(), 850);
+      if(!prefersReduced){
+        [
+          ['.sheet-label span', 0],
+          ['.kicker', 40],
+          ['h1', 140],
+          ['.hero p', 280],
+          ['.ph-label', 320],
+          ['.cta-row .btn', 400],
+        ].forEach(([sel, delay])=>{
+          document.querySelectorAll(sel).forEach(el=>{
+            setTimeout(()=> decodeText(el), delay);
+          });
+        });
+      }
     }
 
     if(prefersReduced){
@@ -876,6 +890,14 @@
     el.addEventListener('mouseenter', () => fx.setText(originalText));
   });
 
+  // One-shot decode-in: plays the same scramble effect once when plain text appears,
+  // so body copy "decodes" like the headings instead of just fading up.
+  function decodeText(el){
+    if(!el || el.dataset.decoded === '1') return;
+    el.dataset.decoded = '1';
+    new TextScramble(el).setText(el.innerText);
+  }
+
   /* ---------- WOW-FEATURE 2: kinetic 3D tilt on service cards ---------- */
   document.querySelectorAll('.svc').forEach(card => {
     const inner = card.querySelector('.svc-inner');
@@ -948,6 +970,24 @@
     });
   }, {threshold:.15});
   faders.forEach(f=>io.observe(f));
+
+  // Decode-in on scroll: extends the heading scramble effect to the rest of the copy
+  if(!prefersReducedMotion){
+    const decodeSelector = [
+      'h2','h3','.sec-label span','.svc li','.j-entry p',
+      '.proc-txt b','.proc-txt span','.stat .lbl','.g-title',
+      '.wrap > p.fade-up:not(.code-note)','.contact-box p','.contact-links a','footer'
+    ].join(',');
+    const decodeIO = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          decodeText(e.target);
+          decodeIO.unobserve(e.target);
+        }
+      });
+    }, {threshold:.35});
+    document.querySelectorAll(decodeSelector).forEach(el=>decodeIO.observe(el));
+  }
 
   // Active sheet number in topbar
   const sheets = document.querySelectorAll('[id^="sheet-"]');
