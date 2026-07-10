@@ -375,9 +375,35 @@
   @media (prefers-reduced-motion: reduce){
     *{animation:none !important; transition:none !important;}
   }
+
+  /* Matrix boot intro */
+  #matrix-intro{
+    position:fixed; inset:0; z-index:100000; background:#07090b;
+    display:flex; align-items:center; justify-content:center;
+    cursor:wait;
+    opacity:1; visibility:visible;
+    transition:opacity .8s ease, visibility 0s linear 0s;
+  }
+  #matrix-intro.hide{
+    opacity:0; visibility:hidden;
+    transition:opacity .8s ease, visibility 0s linear .8s;
+  }
+  #matrix-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #matrix-label{
+    position:relative; z-index:2;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.22em;
+    text-transform:uppercase; color:#ff6a58; text-shadow:0 0 10px #a8323299;
+  }
+  #matrix-label::after{ content:"_"; margin-left:2px; animation:blink 1s step-end infinite; }
+  body.matrix-locked{ overflow:hidden; height:100vh; }
 </style>
 </head>
 <body>
+
+<div id="matrix-intro" aria-hidden="true">
+  <canvas id="matrix-canvas"></canvas>
+  <div id="matrix-label">инициализация интерфейса<span id="matrix-pct"> 00%</span></div>
+</div>
 
 <div class="topbar">
   <span>МОСКВА · RU</span>
@@ -625,6 +651,79 @@
 <footer>Касаткин Сергей · Python Backend Developer · Москва, 2026</footer>
 
 <script>
+  /* ---------- Matrix boot intro: binary rain, then reveals the page ---------- */
+  (function(){
+    const intro = document.getElementById('matrix-intro');
+    if(!intro) return;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function closeIntro(){
+      intro.classList.add('hide');
+      document.body.classList.remove('matrix-locked');
+      setTimeout(()=> intro.remove(), 850);
+    }
+
+    if(prefersReduced){
+      closeIntro();
+      return;
+    }
+
+    document.body.classList.add('matrix-locked');
+
+    const canvas = document.getElementById('matrix-canvas');
+    const pctEl = document.getElementById('matrix-pct');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 16;
+    let w, h, cols, drops, rafId;
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      cols = Math.ceil(w / fontSize);
+      drops = new Array(cols).fill(0).map(()=> Math.floor(Math.random() * -40));
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function draw(){
+      ctx.fillStyle = 'rgba(7,9,11,0.16)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = fontSize + 'px "IBM Plex Mono", monospace';
+      for(let i = 0; i < cols; i++){
+        const char = Math.random() < 0.5 ? '0' : '1';
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillStyle = Math.random() < 0.05 ? '#ffe9e4' : 'rgba(216,68,52,0.82)';
+        ctx.fillText(char, x, y);
+        if(y > h && Math.random() > 0.975){ drops[i] = 0; }
+        drops[i]++;
+      }
+      rafId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    const minDuration = 3000;
+    const start = performance.now();
+    const pctTimer = setInterval(()=>{
+      const pct = Math.min(100, Math.round(((performance.now() - start) / minDuration) * 100));
+      if(pctEl) pctEl.textContent = ' ' + String(pct).padStart(2, '0') + '%';
+      if(pct >= 100) clearInterval(pctTimer);
+    }, 60);
+
+    function finish(){
+      const elapsed = performance.now() - start;
+      const wait = Math.max(0, minDuration - elapsed);
+      setTimeout(()=>{
+        closeIntro();
+        cancelAnimationFrame(rafId);
+        clearInterval(pctTimer);
+        window.removeEventListener('resize', resize);
+      }, wait);
+    }
+    if(document.readyState === 'complete'){ finish(); }
+    else { window.addEventListener('load', finish); }
+  })();
+
   // Scroll progress ruler
   const rulerFill = document.getElementById('ruler-fill');
   function updateRuler(){
