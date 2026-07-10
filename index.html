@@ -134,8 +134,8 @@
   h2{font-size:clamp(22px,3vw,30px); font-weight:600; letter-spacing:-.01em; margin-bottom:28px;}
 
   /* Stat counters */
-  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line-strong); border:1px solid var(--line-strong);}
-  @media(max-width:700px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-strong); border:1px solid var(--line-strong);}
+  @media(max-width:700px){ .stats{grid-template-columns:1fr;} }
   .stat{background:var(--paper); padding:22px 18px;}
   .stat .num{font-family:'IBM Plex Mono',monospace; font-size:32px; font-weight:600; color:var(--stamp);}
   .stat .lbl{font-size:12px; color:var(--ink-soft); margin-top:4px;}
@@ -155,7 +155,13 @@
 
   /* Tech chips */
   .chip-group{margin-bottom:26px;}
-  .chip-group .g-title{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.05em; color:var(--ink-soft); text-transform:uppercase; margin-bottom:12px;}
+  .g-title{
+    font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:700; letter-spacing:.08em;
+    color:var(--stamp); text-transform:uppercase; margin-bottom:14px;
+    padding-bottom:8px; border-bottom:1px solid var(--line-strong);
+    display:flex; align-items:center; gap:10px;
+  }
+  .g-title::before{ content:""; width:18px; height:2px; background:var(--stamp); display:inline-block; flex:none; }
   .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
   .chip{
     font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:.02em;
@@ -167,38 +173,38 @@
   .chip:hover{border-color:var(--stamp); color:var(--ink); background:var(--paper-2);}
 
   /* Honest process flow */
-  .process{position:relative; margin-top:26px; padding-top:8px;}
-  .process-track{position:absolute; top:8px; left:0; right:0; height:1px; background:var(--line-strong);}
+  .process{position:relative; margin-top:40px; padding-top:14px;}
+  .process-track{position:absolute; top:14px; left:0; right:0; height:2px; background:var(--line-strong);}
   .process-fill{height:100%; width:0%; background:var(--stamp); transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
-  .process-steps{display:flex; justify-content:space-between; gap:6px; position:relative;}
-  .proc-step{flex:1; text-align:center; padding:0 4px; min-width:0;}
+  .process-steps{display:flex; justify-content:space-between; gap:14px; position:relative;}
+  .proc-step{flex:1; text-align:center; padding:0 6px; min-width:0;}
   .proc-dot{
-    display:block; width:9px; height:9px; border-radius:50%; background:var(--paper);
-    border:2px solid var(--ink); margin:0 auto 16px; position:relative; z-index:2;
+    display:block; width:13px; height:13px; border-radius:50%; background:var(--paper);
+    border:2px solid var(--ink); margin:0 auto 22px; position:relative; z-index:2;
     transform:scale(0); transition:transform .35s cubic-bezier(.34,1.56,.64,1), border-color .3s;
   }
   .proc-dot.in{transform:scale(1); border-color:var(--stamp);}
-  .proc-txt b{display:block; font-size:13.5px; font-weight:600; margin-bottom:6px;}
-  .proc-txt span{font-size:11.5px; color:var(--ink-soft); display:block; line-height:1.4;}
+  .proc-txt b{display:block; font-size:16px; font-weight:700; margin-bottom:8px;}
+  .proc-txt span{font-size:13.5px; color:var(--ink-soft); display:block; line-height:1.5;}
   @media(max-width:700px){
     .process-steps{flex-wrap:wrap;}
-    .proc-step{flex:1 1 45%; margin-bottom:20px;}
+    .proc-step{flex:1 1 45%; margin-bottom:28px;}
     .process-track{display:none;}
   }
 
   /* Timeline / journal */
-  .journal{border-left:1px solid var(--line-strong); padding-left:28px; margin-left:6px;}
-  .j-entry{position:relative; padding-bottom:34px;}
+  .journal{border-left:2px solid var(--line-strong); padding-left:36px; margin-left:6px;}
+  .j-entry{position:relative; padding-bottom:46px;}
   .j-entry:last-child{padding-bottom:0;}
   .j-entry::before{
-    content:""; position:absolute; left:-33px; top:4px; width:9px; height:9px;
-    border:1px solid var(--ink); background:var(--paper); border-radius:50%;
+    content:""; position:absolute; left:-41px; top:2px; width:13px; height:13px;
+    border:2px solid var(--ink); background:var(--paper); border-radius:50%;
     transition:background .3s, border-color .3s;
   }
   .j-entry:hover::before{background:var(--stamp); border-color:var(--stamp);}
-  .j-entry .j-num{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--stamp); letter-spacing:.08em; margin-bottom:4px;}
-  .j-entry h3{font-size:17px; font-weight:600; margin-bottom:6px;}
-  .j-entry p{font-size:14px; color:var(--ink-soft); max-width:60ch;}
+  .j-entry .j-num{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--stamp); letter-spacing:.1em; margin-bottom:6px; font-weight:600;}
+  .j-entry h3{font-size:22px; font-weight:700; margin-bottom:10px;}
+  .j-entry p{font-size:16.5px; line-height:1.6; color:var(--ink-soft); max-width:62ch;}
 
   /* Contact */
   .contact-box{border:1px solid var(--ink); padding:40px; position:relative;}
@@ -408,19 +414,19 @@
   /* Ambient + cursor-trail glitch artifacts */
   .glitch-artifact{
     position:fixed; z-index:5; pointer-events:none;
-    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; letter-spacing:.04em;
-    color:rgba(168,50,50,.85); text-shadow:0 0 6px rgba(168,50,50,.35);
+    font-family:'IBM Plex Mono', monospace; font-size:19px; font-weight:700; letter-spacing:.04em;
+    color:rgba(168,50,50,.9); text-shadow:0 0 8px rgba(168,50,50,.45);
     white-space:nowrap; will-change:opacity, transform;
   }
   .glitch-artifact.ambient{ animation:glitchAmbient 2.8s ease-out forwards; }
   @keyframes glitchAmbient{
-    0%{ opacity:0; transform:translateY(2px) scale(.9); }
-    10%{ opacity:1; transform:translateY(0) scale(1.1); }
-    75%{ opacity:.7; }
-    100%{ opacity:0; transform:translateY(-14px) scale(.95); }
+    0%{ opacity:0; transform:translateY(2px) scale(.85); }
+    10%{ opacity:1; transform:translateY(0) scale(1.15); }
+    75%{ opacity:.75; }
+    100%{ opacity:0; transform:translateY(-16px) scale(1); }
   }
   .glitch-artifact.trail{
-    font-size:12px; color:rgba(168,50,50,.9);
+    font-size:17px; color:rgba(168,50,50,.95);
     animation:glitchTrail .75s ease-out forwards;
   }
   @keyframes glitchTrail{
@@ -492,7 +498,6 @@
       <div class="stat"><div class="num" data-count="2">0</div><div class="lbl">года backend с 2024</div></div>
       <div class="stat"><div class="num" data-count="2022" data-raw="true">0</div><div class="lbl">старт IT-практики</div></div>
       <div class="stat"><div class="num" data-count="12">0</div><div class="lbl">проектов сдано</div></div>
-      <div class="stat"><div class="num" data-count="100">0</div><div class="lbl">% на удалёнке</div></div>
     </div>
   </div>
 </section>
@@ -722,13 +727,25 @@
     let w, h, cols, drops, rafId;
 
     function resize(){
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+      // Measure the overlay's own rendered box rather than window.innerWidth/Height:
+      // on mobile the browser chrome (address bar) can still be animating when this
+      // first runs, so a raw window.innerHeight reading can undershoot the real
+      // viewport and leave the rain not covering the full screen.
+      const rect = intro.getBoundingClientRect();
+      w = canvas.width = Math.ceil(rect.width || window.innerWidth);
+      h = canvas.height = Math.ceil(rect.height || window.innerHeight);
       cols = Math.ceil(w / fontSize);
       drops = new Array(cols).fill(0).map(()=> Math.floor(Math.random() * -40));
     }
     resize();
+    // Mobile viewports can still settle after first paint (toolbar collapse,
+    // orientation, keyboard) — re-measure a few times early on to catch it.
+    requestAnimationFrame(resize);
+    setTimeout(resize, 150);
+    setTimeout(resize, 500);
     window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', resize);
+    if(window.visualViewport){ window.visualViewport.addEventListener('resize', resize); }
 
     function draw(){
       ctx.fillStyle = 'rgba(7,9,11,0.16)';
@@ -763,6 +780,8 @@
         cancelAnimationFrame(rafId);
         clearInterval(pctTimer);
         window.removeEventListener('resize', resize);
+        window.removeEventListener('orientationchange', resize);
+        if(window.visualViewport){ window.visualViewport.removeEventListener('resize', resize); }
       }, wait);
     }
     if(document.readyState === 'complete'){ finish(); }
@@ -892,23 +911,28 @@
       this.frame++;
     }
   }
+  // Every element gets at most ONE TextScramble instance, shared between the
+  // hover trigger and the scroll-reveal trigger, so two decode passes can
+  // never write to the same element's innerHTML at once and garble it.
+  function getScramble(el){
+    if(!el._scrambleFx) el._scrambleFx = new TextScramble(el);
+    return el._scrambleFx;
+  }
+
   document.querySelectorAll('.scramble-ready').forEach(el => {
-    const fx = new TextScramble(el);
     const originalText = el.getAttribute('data-text') || el.innerText;
-    el.addEventListener('mouseenter', () => fx.setText(originalText));
+    el.addEventListener('mouseenter', () => getScramble(el).setText(originalText));
   });
   document.querySelectorAll('h2').forEach(el => {
-    el.classList.add('scramble-ready');
-    const fx = new TextScramble(el);
     const originalText = el.innerText;
-    el.addEventListener('mouseenter', () => fx.setText(originalText));
+    el.addEventListener('mouseenter', () => getScramble(el).setText(originalText));
   });
 
   // Decode-in: plays the scramble effect whenever plain text becomes visible,
   // so body copy "decodes" like the headings instead of just fading up.
   function decodeText(el){
     if(!el) return;
-    new TextScramble(el).setText(el.innerText);
+    getScramble(el).setText(el.innerText);
   }
 
   /* ---------- WOW-FEATURE 2: kinetic 3D tilt on service cards ---------- */
