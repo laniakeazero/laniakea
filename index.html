@@ -918,21 +918,39 @@
     if(!el._scrambleFx) el._scrambleFx = new TextScramble(el);
     return el._scrambleFx;
   }
+  // The true text is captured once, before anything ever scrambles it, and
+  // reused as the decode target forever after. Reading el.innerText at
+  // trigger time is NOT safe: if a re-trigger lands mid-animation, innerText
+  // is a half-scrambled mix of real letters and glitch symbols, and decoding
+  // "into" that mix permanently bakes the garbage in — this was the bug.
+  function getOriginalText(el){
+    if(el._originalText === undefined){
+      // textContent, not innerText: several of these elements are
+      // text-transform:uppercase, and innerText returns the rendered
+      // (already-uppercased) text, which would bake the transform into
+      // the real DOM content the first time it gets decoded.
+      el._originalText = el.getAttribute('data-text') || el.textContent;
+    }
+    return el._originalText;
+  }
 
   document.querySelectorAll('.scramble-ready').forEach(el => {
-    const originalText = el.getAttribute('data-text') || el.innerText;
-    el.addEventListener('mouseenter', () => getScramble(el).setText(originalText));
+    getOriginalText(el);
+    el.addEventListener('mouseenter', () => getScramble(el).setText(getOriginalText(el)));
   });
   document.querySelectorAll('h2').forEach(el => {
-    const originalText = el.innerText;
-    el.addEventListener('mouseenter', () => getScramble(el).setText(originalText));
+    getOriginalText(el);
+    el.addEventListener('mouseenter', () => getScramble(el).setText(getOriginalText(el)));
   });
 
   // Decode-in: plays the scramble effect whenever plain text becomes visible,
   // so body copy "decodes" like the headings instead of just fading up.
   function decodeText(el){
     if(!el) return;
-    getScramble(el).setText(el.innerText);
+    const now = performance.now();
+    if(el._lastDecodeAt && now - el._lastDecodeAt < 500) return;
+    el._lastDecodeAt = now;
+    getScramble(el).setText(getOriginalText(el));
   }
 
   /* ---------- WOW-FEATURE 2: kinetic 3D tilt on service cards ---------- */
