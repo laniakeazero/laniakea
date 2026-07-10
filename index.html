@@ -3,442 +3,849 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Меган — Python backend / Telegram-боты</title>
+<title>Касаткин Сергей — Python Backend / Telegram-боты</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #f7f8f6;
-    --bg-panel: #ffffff;
-    --line: #b7c2c2;
-    --line-dim: rgba(40,58,58,0.14);
-    --line-dimmer: rgba(40,58,58,0.06);
-    --ink: #1b2422;
-    --ink-dim: #66756f;
-    --accent: #b23b2e;
-    --accent-dim: rgba(178,59,46,0.16);
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'IBM Plex Sans', sans-serif;
+    --paper:#EDE8DD;
+    --paper-2:#E4DFD1;
+    --ink:#1C1B19;
+    --ink-soft:#4A473F;
+    --stamp:#A83232;
+    --stamp-soft:#c9605430;
+    --teal:#57635C;
+    --line:#1C1B1930;
+    --line-strong:#1C1B1955;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
   body{
-    background:
-      repeating-linear-gradient(0deg, var(--line-dimmer) 0px, var(--line-dimmer) 1px, transparent 1px, transparent 32px),
-      repeating-linear-gradient(90deg, var(--line-dimmer) 0px, var(--line-dimmer) 1px, transparent 1px, transparent 32px),
-      var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    line-height: 1.55;
-    min-height:100vh;
-    position:relative;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
   }
-  ::selection{ background: var(--accent-dim); color: var(--ink); }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .display{font-family:'Space Grotesk', sans-serif;}
 
-  /* corner registration marks */
-  .corner{ position:fixed; width:26px; height:26px; z-index:50; pointer-events:none; opacity:.8;}
-  .corner::before, .corner::after{ content:''; position:absolute; background:var(--line);}
-  .corner::before{ width:100%; height:1px; top:50%;}
-  .corner::after{ width:1px; height:100%; left:50%;}
-  .corner.tl{ top:14px; left:14px;}
-  .corner.tr{ top:14px; right:14px;}
-  .corner.bl{ bottom:14px; left:14px;}
-  .corner.br{ bottom:14px; right:14px;}
+  a{color:inherit;}
 
-  .wrap{ max-width:1040px; margin:0 auto; padding:0 28px; }
+  .wrap{max-width:980px; margin:0 auto; padding:0 28px;}
 
-  .ruler{
-    border-bottom:1px solid var(--line-dim);
-    padding:14px 0;
+  /* Top bar */
+  .topbar{
     display:flex; justify-content:space-between; align-items:center;
-    font-family:var(--mono); font-size:11px; letter-spacing:.12em;
-    color:var(--ink-dim); text-transform:uppercase;
+    padding:14px 28px;
+    border-bottom:1px solid var(--line-strong);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    position:sticky; top:0; background:var(--paper); z-index:50;
   }
-  .ruler span.mark{ color:var(--line);}
+  .topbar span.dim{opacity:.55}
 
   /* HERO */
-  .hero{ padding:90px 0 70px; position:relative; }
-  .hero-grid{ display:grid; grid-template-columns: 1.5fr 1fr; gap:48px; align-items:start; }
-  .hero .eyebrow{
-    font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase;
-    color:var(--accent); margin-bottom:22px; display:flex; align-items:center; gap:10px;
+  .sheet{position:relative; border-bottom:1px solid var(--line-strong);}
+  .sheet-label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:18px 28px 0; font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:.08em; color:var(--ink-soft); text-transform:uppercase;
   }
-  .hero .eyebrow::before{ content:''; width:26px; height:1px; background:var(--accent); display:inline-block;}
-  .hero h1{
-    font-family:var(--mono); font-weight:700;
-    font-size:clamp(48px, 9vw, 96px);
-    letter-spacing:.01em;
-    line-height:.95;
-    text-transform:uppercase;
-    position:relative;
-    display:inline-block;
+  .hero{
+    display:grid; grid-template-columns: 1.5fr 1fr; gap:40px;
+    padding:36px 28px 60px;
+    align-items:start;
   }
-  .hero h1 .name-line{ display:block; }
-  .hero h1 .name-line + .name-line{ margin-top:6px; }
-  .hero h1 .underline{
-    display:block; height:3px; background:var(--accent); margin-top:14px;
-    width:0%; animation: draw 1.1s .25s cubic-bezier(.65,0,.35,1) forwards;
-  }
-  @keyframes draw{ to{ width:62%; } }
-  .hero .role{
-    font-family:var(--mono); font-size:15px; letter-spacing:.05em; color:var(--line);
-    margin-top:22px; text-transform:uppercase;
-  }
-  .hero .tagline{
-    font-size:19px; color:var(--ink-dim); max-width:620px; margin-top:18px;
-  }
-  .hero .tagline.accent{
-    margin-top:10px; color:var(--accent); font-weight:600;
-  }
-  .hero .cta{ margin-top:38px; display:flex; gap:16px; flex-wrap:wrap;}
-  .btn{
-    font-family:var(--mono); font-size:13px; letter-spacing:.08em; text-transform:uppercase;
-    padding:13px 22px; border:1px solid var(--line); color:var(--ink); text-decoration:none;
-    background:transparent; cursor:pointer; transition:.2s ease; display:inline-block;
-  }
-  .btn:hover{ background:var(--ink); border-color:var(--ink); color:#fff; }
-  .btn.solid{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
-  .btn.solid:hover{ opacity:.85; background:var(--accent); color:#fff;}
+  @media(max-width:760px){ .hero{grid-template-columns:1fr;} }
 
+  .hero h1{
+    font-size:clamp(30px,4.4vw,46px);
+    font-weight:600; line-height:1.08; letter-spacing:-.01em;
+    margin:14px 0 20px;
+  }
+  .kicker{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em;
+    color:var(--stamp); text-transform:uppercase; font-weight:600;
+  }
+  .hero p{font-size:16px; color:var(--ink-soft); max-width:52ch; margin-bottom:26px;}
+
+  .cta-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; letter-spacing:.04em;
+    padding:12px 20px; border:1px solid var(--ink); text-transform:uppercase;
+    text-decoration:none; display:inline-block; transition:.2s;
+  }
+  .btn.primary{background:var(--ink); color:var(--paper);}
+  .btn.primary:hover{background:var(--stamp); border-color:var(--stamp);}
+  .btn.ghost:hover{background:var(--ink); color:var(--paper);}
+
+  /* Photo + stamp */
+  .photo-block{position:relative;}
   .photo-frame{
-    position:relative; aspect-ratio: 3/4; border:1px solid var(--line);
-    background: var(--bg-panel); overflow:hidden;
+    border:1px solid var(--ink); aspect-ratio:3/4; background:var(--paper-2);
+    position:relative; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
   }
-  .photo-frame img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .photo-placeholder-text{
-    display:none; flex-direction:column; align-items:center; gap:10px;
-    color: var(--ink-dim); font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  .photo-frame img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-frame .ph-label{
+    position:absolute; bottom:8px; left:8px; font-family:'IBM Plex Mono',monospace;
+    font-size:10px; color:var(--ink-soft); letter-spacing:.05em; z-index:2;
   }
-  .photo-corner{ position:absolute; width:16px; height:16px; z-index:2; }
-  .photo-corner::before, .photo-corner::after{ content:''; position:absolute; background:var(--accent); }
-  .photo-corner::before{ width:100%; height:1px; top:0;}
-  .photo-corner::after{ width:1px; height:100%; left:0;}
-  .photo-corner.tl{ top:8px; left:8px; }
-  .photo-corner.tr{ top:8px; right:8px; transform:scaleX(-1);}
-  .photo-corner.bl{ bottom:8px; left:8px; transform:scaleY(-1);}
-  .photo-corner.br{ bottom:8px; right:8px; transform:scale(-1,-1);}
-  .photo-label{
-    position:absolute; bottom:0; left:0; right:0; text-align:center; padding:8px 0;
-    font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-dim);
-    border-top:1px solid var(--line-dim); background:rgba(255,255,255,0.85);
-  }
+  .photo-frame svg{width:56%; opacity:.35;}
 
-  /* SHEET (generic panel with titleblock) */
-  .sheet{ border:1px solid var(--line-dim); margin-top:64px; background:var(--bg-panel); box-shadow: 0 1px 2px rgba(20,30,30,0.03), 0 8px 24px rgba(20,30,30,0.03); }
-  .titleblock{
-    display:flex; justify-content:space-between; align-items:center;
-    border-bottom:1px solid var(--line-dim);
-    padding:10px 20px;
-    font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--ink-dim);
-  }
-  .titleblock .no{ color:var(--accent); }
-  .sheet-body{ padding:40px 32px 44px; }
-  .sheet h2{
-    font-family:var(--mono); font-size:26px; text-transform:uppercase; letter-spacing:.02em;
-    margin-bottom:26px;
-  }
-
-  /* ABOUT */
-  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap:40px; }
-  .about-grid p{ color:var(--ink-dim); font-size:16px; margin-bottom:14px;}
-  .spec-table{ font-family:var(--mono); font-size:13px; border-top:1px solid var(--line-dim); }
-  .spec-row{ display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--line-dim); gap:12px;}
-  .spec-row .k{ color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em; font-size:11px;}
-  .spec-row .v{ text-align:right; color:var(--ink); }
-
-  /* SERVICES */
-  .legend-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-  .flip-card{ perspective:1000px; min-height:260px; }
-  .flip-card-inner{ position:relative; width:100%; height:100%; transition:transform .65s ease; transform-style:preserve-3d; cursor:pointer; }
-  .flip-card.is-flipped .flip-card-inner{ transform:rotateY(180deg); }
-  .flip-card-front, .flip-card-back{ position:absolute; inset:0; border:1px solid var(--line-dim); background:var(--bg); padding:26px; display:flex; flex-direction:column; justify-content:space-between; backface-visibility:hidden; }
-  .flip-card-front{ gap:18px; }
-  .flip-card-back{ transform:rotateY(180deg); background:var(--bg-panel); }
-  .legend-icon{ flex:0 0 46px; height:46px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--line);}
-  .legend-icon svg{ width:24px; height:24px; }
-  .legend-text .code{ font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:.1em; margin-bottom:6px; display:block;}
-  .legend-text h3{ font-size:17px; margin-bottom:6px; font-weight:600;}
-  .legend-text p{ color:var(--ink-dim); font-size:14px; }
-  .hint{ font-family:var(--mono); font-size:11px; color:var(--ink-dim); letter-spacing:.08em; text-transform:uppercase; }
-  .project-list{ list-style:none; display:flex; flex-direction:column; gap:10px; color:var(--ink-dim); font-size:14px; }
-  .project-list li{ padding-left:14px; position:relative; }
-  .project-list li::before{ content:'•'; position:absolute; left:0; color:var(--accent); }
-
-  /* PROJECTS */
-  .project{ border:1px solid var(--line-dim); margin-bottom:22px; }
-  .project:last-child{ margin-bottom:0; }
-  .project-head{
-    display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px;
-    padding:18px 22px; border-bottom:1px solid var(--line-dim);
-  }
-  .project-head h3{ font-family:var(--mono); font-size:18px; text-transform:uppercase; letter-spacing:.02em;}
-  .status{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:4px 10px; border:1px solid var(--accent); color:var(--accent);}
-  .project-body{ padding:20px 22px 24px; display:grid; grid-template-columns: 1.5fr 1fr; gap:26px;}
-  .project-body p{ color:var(--ink-dim); font-size:15px; }
-  .stack-list{ font-family:var(--mono); font-size:12px; color:var(--ink-dim); display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start;}
-  .stack-list span{ border:1px solid var(--line-dim); padding:4px 9px; }
-  .obj-no{ font-family:var(--mono); font-size:11px; color:var(--line); letter-spacing:.1em; margin-bottom:4px; display:block;}
-
-  .log-table{ border-top:1px solid var(--line-dim); }
-  .log-row{ display:grid; grid-template-columns: 170px 1fr; gap:20px; padding:18px 0; border-bottom:1px solid var(--line-dim); align-items:baseline;}
-  .log-cat{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent);}
-  .log-row p{ color:var(--ink-dim); font-size:15px; }
-
-  /* CONTACT / STAMP */
-  .stamp-wrap{ display:flex; justify-content:center; padding:10px 0 6px;}
   .stamp{
-    border:2px solid var(--accent); padding:26px 34px; text-align:center; max-width:420px;
-    transform:rotate(-1.5deg);
+    position:absolute; top:-18px; right:-14px;
+    width:118px; height:118px; border-radius:50%;
+    border:2px solid var(--stamp); color:var(--stamp);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    transform:rotate(-14deg);
+    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.06em;
+    text-transform:uppercase; font-weight:600;
+    background:radial-gradient(circle, #A8323208 0%, transparent 70%);
+    animation:stampIn .5s .3s cubic-bezier(.2,1.4,.4,1) both, stampBreathe 4s 1s ease-in-out infinite;
   }
-  .stamp .stamp-title{ font-family:var(--mono); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin-bottom:10px;}
-  .stamp p{ color:var(--ink-dim); font-size:14px; margin-bottom:16px;}
-  .contact-list{ font-family:var(--mono); font-size:14px; display:flex; flex-direction:column; gap:8px; margin-top:8px;}
-  .contact-list a{ color:var(--ink); text-decoration:none; border-bottom:1px dashed var(--line-dim);}
-  .contact-list a:hover{ color:var(--accent); border-color:var(--accent);}
-
-  footer{ text-align:center; padding:50px 0 70px; font-family:var(--mono); font-size:11px; color:var(--ink-dim); letter-spacing:.08em;}
-
-  @media (max-width:720px){
-    .about-grid, .legend-grid, .project-body{ grid-template-columns: 1fr; }
-    .hero-grid{ grid-template-columns: 1fr; }
-    .photo-frame{ max-width:240px; margin:0 auto; }
-    .log-row{ grid-template-columns: 1fr; gap:6px; }
-    .hero{ padding:70px 0 50px; }
-    .sheet-body{ padding:30px 20px 34px;}
+  .stamp::before{
+    content:""; position:absolute; inset:8px; border:1px solid var(--stamp); border-radius:50%; opacity:.5;
+  }
+  @keyframes stampIn{ from{opacity:0; transform:rotate(-14deg) scale(1.6);} to{opacity:1; transform:rotate(-14deg) scale(1);} }
+  @keyframes stampBreathe{
+    0%,100%{transform:rotate(-14deg) scale(1);}
+    50%{transform:rotate(-14deg) scale(1.035);}
   }
 
-  [data-reveal]{ opacity:0; transform:translateY(18px); transition: opacity .6s ease, transform .6s ease;}
-  [data-reveal].in{ opacity:1; transform:none; }
+  /* Perforation divider */
+  .perf{ height:1px; border-top:1px dashed var(--line-strong); position:relative; }
+
+  /* Section shell */
+  section{padding:56px 0; border-bottom:1px solid var(--line-strong);}
+  .sec-label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.08em;
+    color:var(--ink-soft); text-transform:uppercase; margin-bottom:22px;
+  }
+  h2{font-size:clamp(22px,3vw,30px); font-weight:600; letter-spacing:-.01em; margin-bottom:28px;}
+
+  /* Stat counters */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line-strong); border:1px solid var(--line-strong);}
+  @media(max-width:700px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  .stat{background:var(--paper); padding:22px 18px;}
+  .stat .num{font-family:'IBM Plex Mono',monospace; font-size:32px; font-weight:600; color:var(--stamp);}
+  .stat .lbl{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+  /* Services grid */
+  .services{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line-strong); border:1px solid var(--line-strong);}
+  @media(max-width:700px){ .services{grid-template-columns:1fr;} }
+  .svc{background:var(--paper); padding:26px; perspective:800px; transition:background .35s;}
+  .svc-inner{transition:transform .15s ease-out;}
+  .svc:hover{background:var(--paper-2);}
+  .svc .code{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--stamp); letter-spacing:.08em; margin-bottom:10px; transition:color .3s;}
+  .svc:hover .code{color:var(--ink);}
+  .svc h3{font-size:19px; font-weight:600; margin-bottom:12px;}
+  .svc ul{list-style:none; font-size:14px; color:var(--ink-soft);}
+  .svc li{position:relative; padding-left:16px; margin-bottom:6px;}
+  .svc li::before{content:"—"; position:absolute; left:0; color:var(--ink-soft); opacity:.6;}
+
+  /* Tech chips */
+  .chip-group{margin-bottom:26px;}
+  .chip-group .g-title{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.05em; color:var(--ink-soft); text-transform:uppercase; margin-bottom:12px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:.02em;
+    padding:8px 14px; border:1px solid var(--line-strong); color:var(--ink-soft);
+    background:var(--paper); opacity:0; transform:translateY(8px) scale(.96);
+    transition:opacity .4s ease, transform .4s ease, border-color .25s, color .25s, background .25s;
+  }
+  .chip.in{opacity:1; transform:translateY(0) scale(1);}
+  .chip:hover{border-color:var(--stamp); color:var(--ink); background:var(--paper-2);}
+
+  /* Honest process flow */
+  .process{position:relative; margin-top:26px; padding-top:8px;}
+  .process-track{position:absolute; top:8px; left:0; right:0; height:1px; background:var(--line-strong);}
+  .process-fill{height:100%; width:0%; background:var(--stamp); transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
+  .process-steps{display:flex; justify-content:space-between; gap:6px; position:relative;}
+  .proc-step{flex:1; text-align:center; padding:0 4px; min-width:0;}
+  .proc-dot{
+    display:block; width:9px; height:9px; border-radius:50%; background:var(--paper);
+    border:2px solid var(--ink); margin:0 auto 16px; position:relative; z-index:2;
+    transform:scale(0); transition:transform .35s cubic-bezier(.34,1.56,.64,1), border-color .3s;
+  }
+  .proc-dot.in{transform:scale(1); border-color:var(--stamp);}
+  .proc-txt b{display:block; font-size:13.5px; font-weight:600; margin-bottom:6px;}
+  .proc-txt span{font-size:11.5px; color:var(--ink-soft); display:block; line-height:1.4;}
+  @media(max-width:700px){
+    .process-steps{flex-wrap:wrap;}
+    .proc-step{flex:1 1 45%; margin-bottom:20px;}
+    .process-track{display:none;}
+  }
+
+  /* Timeline / journal */
+  .journal{border-left:1px solid var(--line-strong); padding-left:28px; margin-left:6px;}
+  .j-entry{position:relative; padding-bottom:34px;}
+  .j-entry:last-child{padding-bottom:0;}
+  .j-entry::before{
+    content:""; position:absolute; left:-33px; top:4px; width:9px; height:9px;
+    border:1px solid var(--ink); background:var(--paper); border-radius:50%;
+    transition:background .3s, border-color .3s;
+  }
+  .j-entry:hover::before{background:var(--stamp); border-color:var(--stamp);}
+  .j-entry .j-num{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--stamp); letter-spacing:.08em; margin-bottom:4px;}
+  .j-entry h3{font-size:17px; font-weight:600; margin-bottom:6px;}
+  .j-entry p{font-size:14px; color:var(--ink-soft); max-width:60ch;}
+
+  /* Contact */
+  .contact-box{border:1px solid var(--ink); padding:40px; position:relative;}
+  .contact-box h2{margin-bottom:14px;}
+  .contact-box p{color:var(--ink-soft); margin-bottom:26px; max-width:50ch;}
+  .contact-links{display:flex; flex-wrap:wrap; gap:12px;}
+
+  footer{padding:26px 28px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-align:center; letter-spacing:.05em;}
+
+  .fade-up{opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease;}
+  .fade-up.in{opacity:1; transform:translateY(0);}
+
+  /* Hero stagger */
+  .hero .kicker, .hero h1, .hero p, .hero .cta-row{
+    opacity:0; transform:translateY(14px);
+    animation:heroIn .6s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .hero .kicker{animation-delay:.05s;}
+  .hero h1{animation-delay:.15s;}
+  .hero p{animation-delay:.28s;}
+  .hero .cta-row{animation-delay:.4s;}
+  @keyframes heroIn{ to{opacity:1; transform:translateY(0);} }
+
+  /* Section divider draw-line */
+  .draw-line{width:100%; height:2px; margin-bottom:26px; overflow:visible;}
+  .draw-line path{
+    stroke:var(--ink); stroke-width:1; fill:none;
+    stroke-dasharray:1000; stroke-dashoffset:1000;
+    transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1);
+  }
+  .draw-line.in path{stroke-dashoffset:0;}
+
+  /* Scroll progress ruler */
+  .ruler{position:sticky; top:37px; z-index:49; height:16px; background:var(--paper); border-bottom:1px solid var(--line-strong); overflow:hidden;}
+  .ruler-fill{height:100%; width:0%; background-image:repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 8px); position:relative; transition:width .05s linear;}
+  .ruler-fill::after{content:""; position:absolute; right:0; top:0; bottom:0; width:1px; background:var(--stamp);}
+
+  /* Custom crosshair cursor */
+  #crosshair{
+    position:fixed; top:0; left:0; width:0; height:0; pointer-events:none; z-index:9999;
+    transform:translate(-9999px,-9999px);
+  }
+  #crosshair .h, #crosshair .v{position:absolute; background:var(--stamp); opacity:.55;}
+  #crosshair .h{width:18px; height:1px; top:-1px; left:-9px;}
+  #crosshair .v{width:1px; height:18px; top:-9px; left:-1px;}
+  #crosshair .coord{
+    position:absolute; top:12px; left:12px; white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--stamp); opacity:.75;
+  }
+  @media(hover:none){ #crosshair{display:none;} }
+  @media(hover:hover) and (pointer:fine){ body, a, button{cursor:none;} }
+
+  /* Scanning line over photo */
+  .scan-line{
+    position:absolute; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--stamp), transparent);
+    top:0; opacity:.8; z-index:2;
+    animation:scanMove 3.2s ease-in-out infinite;
+  }
+  @keyframes scanMove{ 0%{top:0%;} 50%{top:96%;} 100%{top:0%;} }
+
+  /* Pulsing corner registration marks */
+  .corner-mark{
+    position:absolute; width:14px; height:14px; opacity:.35;
+    animation:cornerPulse 3s ease-in-out infinite;
+  }
+  .corner-mark::before, .corner-mark::after{content:""; position:absolute; background:var(--ink);}
+  .corner-mark::before{width:100%; height:1px; top:50%;}
+  .corner-mark::after{width:1px; height:100%; left:50%;}
+  .corner-mark.tl{top:10px; left:10px;}
+  .corner-mark.tr{top:10px; right:10px; animation-delay:.5s;}
+  .corner-mark.bl{bottom:10px; left:10px; animation-delay:1s;}
+  .corner-mark.br{bottom:10px; right:10px; animation-delay:1.5s;}
+  @keyframes cornerPulse{ 0%,100%{opacity:.25;} 50%{opacity:.7;} }
+
+  /* Marquee ticker */
+  .ticker{
+    border-bottom:1px solid var(--line-strong); border-top:1px solid var(--line-strong);
+    overflow:hidden; white-space:nowrap; background:var(--paper-2); padding:10px 0;
+  }
+  .ticker-track{display:inline-block; animation:tickerMove 22s linear infinite;}
+  .ticker-track span{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.08em;
+    color:var(--ink-soft); text-transform:uppercase; padding:0 22px; display:inline-block;
+  }
+  .ticker-track span.accent{color:var(--stamp);}
+  @keyframes tickerMove{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+  .ticker:hover .ticker-track{animation-play-state:paused;}
+
+  /* Button shine sweep */
+  .btn{position:relative; overflow:hidden;}
+  .btn::before{
+    content:""; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(115deg, transparent, #ffffff35, transparent);
+    transform:skewX(-20deg); transition:left .5s ease;
+  }
+  .btn:hover::before{left:120%;}
+
+  /* Living grid background drift */
+  body{ animation:gridDrift 40s linear infinite; }
+  @keyframes gridDrift{
+    0%{background-position:-1px -1px;}
+    100%{background-position:-33px -33px;} /* 32px = размер клетки сетки, для бесшовного повтора фона */
+  }
+
+  /* Blinking mono caret on kicker */
+  .kicker::after{
+    content:"_"; margin-left:2px; animation:blink 1s step-end infinite; color:var(--stamp);
+  }
+  @keyframes blink{ 50%{opacity:0;} }
+
+  /* Code snippet block */
+  .code-window{
+    border:1px solid var(--ink); background:#211F1A; color:#E8E3D6;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; line-height:1.7;
+    position:relative;
+  }
+  .code-titlebar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 16px; border-bottom:1px solid #ffffff22;
+    font-size:11px; letter-spacing:.06em; color:#B8B2A0; text-transform:uppercase;
+  }
+  .code-dots{display:flex; gap:6px;}
+  .code-dots span{width:8px; height:8px; border-radius:50%; background:#ffffff25;}
+  .code-body{padding:20px 22px; overflow-x:auto;}
+  .code-body pre{margin:0;}
+
+  .code-titlebar .fname{color:#B8B2A0; font-size:11px; letter-spacing:.04em;}
+
+  .run-btn{
+    background:var(--stamp); color:#fff; border:none; padding:5px 12px;
+    font-size:10.5px; font-family:'IBM Plex Mono',monospace; cursor:pointer;
+    font-weight:600; letter-spacing:.05em; transition:.2s;
+  }
+  .run-btn:hover{background:#8f2828;}
+  .run-btn:active{transform:scale(.96);}
+
+  .terminal-output{
+    background:#141310; border-top:1px solid #ffffff11;
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+    padding:0 22px; height:0; overflow:hidden; transition:height .3s ease; color:#8A8474;
+  }
+  .terminal-output #log-container{padding:10px 0; line-height:1.8;}
+  .log-info{color:#6C6656;}
+  .log-db{color:#B7C79A;}
+  .log-ok{color:#9FC1E0;}
+
+  .scramble-ready{ font-family:'IBM Plex Mono', monospace; }
+
+  .code-line{
+    display:block; white-space:pre;
+    opacity:0; transform:translateX(-8px);
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .code-line.in{opacity:1; transform:translateX(0);}
+  .code-line .ln{display:inline-block; width:26px; color:#5C574B; user-select:none;}
+  .tok-kw{color:#E28B7D;}
+  .tok-fn{color:#9FC1E0;}
+  .tok-str{color:#B7C79A;}
+  .tok-com{color:#6C6656; font-style:italic;}
+  .tok-dec{color:#D4A24C;}
+  .tok-num{color:#C9A6D8;}
+
+  .code-caret{
+    display:inline-block; width:7px; height:14px; background:var(--stamp);
+    vertical-align:middle; margin-left:2px; opacity:0;
+    animation:blink 1s step-end infinite;
+  }
+  .code-caret.show{opacity:1;}
+
+  .code-note{ margin-top:18px; font-size:13.5px; color:var(--ink-soft); max-width:60ch; }
+  .code-note b{color:var(--ink); font-weight:600;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
 </style>
 </head>
 <body>
 
-<div class="corner tl"></div>
-<div class="corner tr"></div>
-<div class="corner bl"></div>
-<div class="corner br"></div>
+<div class="topbar">
+  <span>МОСКВА · RU</span>
+  <span class="dim">М 1:1 · ЧБ-2026</span>
+  <span>ЛИСТ <span id="active-sheet">00</span>/06</span>
+</div>
+<div class="ruler"><div class="ruler-fill" id="ruler-fill"></div></div>
 
-<div class="wrap">
-
-  <div class="ruler">
-    <span>МОСКВА · <span class="mark">RU</span></span>
-    <span>М 1:1 · ЧБ-2026</span>
-    <span>ЛИСТ 00/05</span>
-  </div>
-
-  <section class="hero">
-    <div class="hero-grid">
-      <div>
-        <div class="eyebrow">Технический паспорт специалиста</div>
-        <div class="role">Python Backend Developer · Боты</div>
-        <p class="tagline">Привет, я — Касаткин Сергей, помогаю бизнесу и стартапам превращать идеи в рабочие цифровые сервисы. Специализируюсь на backend-разработке, создании ботов и автоматизации процессов. Строю надёжную архитектуру от первого MVP до запуска в продакшен.</p>
-        <div class="cta">
-          <a href="#experience" class="btn solid">Опыт и стек</a>
-          <a href="#contact" class="btn">Связаться</a>
-        </div>
-      </div>
-      <div class="photo-frame">
-        <div class="photo-corner tl"></div>
-        <div class="photo-corner tr"></div>
-        <div class="photo-corner bl"></div>
-        <div class="photo-corner br"></div>
-        <img src="photo.png" alt="Касаткин Сергей" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div class="photo-placeholder-text">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" width="34" height="34"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-          <span>Фото</span>
-        </div>
-        <span class="photo-label">портрет · 3×4</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="sheet" data-reveal id="about">
-    <div class="titleblock"><span>Лист <span class="no">01</span> — о специалисте</span><span>Москва · IT</span></div>
-    <div class="sheet-body">
-      <h2>О себе</h2>
-      <div class="about-grid">
-        <div>
-          <p>Пишу backend-сервисы, REST API и Telegram-ботов на Python (FastAPI, aiogram 3) и Node.js (Express) — от e-commerce до мессенджер-ботов с FSM-логикой, платежами и админками.</p>
-          <p>С 2022 года — IT-специалист на частной практике: обслуживание техники, администрирование 1С и MySQL, развёртывание VPS, локальные сети. С 2024 — фриланс-разработка backend как основное направление.</p>
-          <p>Смотрю на задачи не только как программист, но и с продуктовой логикой — понимаю, зачем нужна фича, а не только как её написать.</p>
-        </div>
-        <div class="spec-table">
-          <div class="spec-row"><span class="k">Опыт</span><span class="v">backend с 2024</span></div>
-          <div class="spec-row"><span class="k">IT-практика</span><span class="v">с 2022</span></div>
-          <div class="spec-row"><span class="k">GitHub</span><span class="v">laniakeazero</span></div>
-          <div class="spec-row"><span class="k">Локация</span><span class="v">Москва / удалённо</span></div>
-          <div class="spec-row"><span class="k">Формат</span><span class="v">проект / почасово</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="sheet" data-reveal id="services">
-    <div class="titleblock"><span>Лист <span class="no">02</span> — услуги</span><span>Условные обозначения</span></div>
-    <div class="sheet-body">
-      <h2>Что делаю</h2>
-      <div class="legend-grid">
-        <div class="flip-card" tabindex="0" role="button" data-flip-card>
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <div class="legend-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8-8 8M12 20h8"/></svg></div>
-              <div class="legend-text">
-                <span class="code">01 / BOT</span>
-                <h3>Боты</h3>
-                <p></p>
-              </div>
-            </div>
-            <div class="flip-card-back">
-              <span class="code">Проекты</span>
-              <ul class="project-list">
-                <li>Бот для записи клиентов в салон</li>
-                <li>Бот для приёма заявок и напоминаний</li>
-                <li>Чат-ассистент с FSM, базой и CRM</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="flip-card" tabindex="0" role="button" data-flip-card>
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <div class="legend-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg></div>
-              <div class="legend-text">
-                <span class="code">02 / API</span>
-                <h3>Бэкенд</h3>
-                <p></p>
-              </div>
-            </div>
-            <div class="flip-card-back">
-              <span class="code">Проекты</span>
-              <ul class="project-list">
-                <li>REST API для интернет-магазина</li>
-                <li>Сервис для обработки заказов и статусов</li>
-                <li>Админка и внутренние панели управления</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="flip-card" tabindex="0" role="button" data-flip-card>
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <div class="legend-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4"/></svg></div>
-              <div class="legend-text">
-                <span class="code">03 / AUTO</span>
-                <h3>Интеграции</h3>
-                <p></p>
-              </div>
-            </div>
-            <div class="flip-card-back">
-              <span class="code">Проекты</span>
-              <ul class="project-list">
-                <li>Интеграция Stripe и ЮKassa</li>
-                <li>Подключение СДЭК и статусов доставки</li>
-                <li>Адаптеры под Авито, WB и Ozon</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="flip-card" tabindex="0" role="button" data-flip-card>
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <div class="legend-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-6 9 6-9 6-9-6z"/><path d="M3 9v6l9 6 9-6V9"/></svg></div>
-              <div class="legend-text">
-                <span class="code">04 / SHOP</span>
-                <h3>E-commerce</h3>
-                <p></p>
-              </div>
-            </div>
-            <div class="flip-card-back">
-              <span class="code">Проекты</span>
-              <ul class="project-list">
-                <li>Витрина для продажи товаров в Telegram</li>
-                <li>Админка для управления каталогом</li>
-                <li>Платёжный и логистический сценарий под клиента</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="sheet" data-reveal id="stack">
-    <div class="titleblock"><span>Лист <span class="no">03</span> — стек</span><span>Спецификация материалов</span></div>
-    <div class="sheet-body">
-      <h2>Технологии</h2>
-      <div class="spec-table">
-        <div class="spec-row"><span class="k">Языки / фреймворки</span><span class="v">Python 3, FastAPI, aiogram 3, Node.js, Express, SQLAlchemy 2, Pydantic v2, Next.js, React</span></div>
-        <div class="spec-row"><span class="k">Базы данных</span><span class="v">PostgreSQL, MySQL, SQLite, Redis</span></div>
-        <div class="spec-row"><span class="k">Инфраструктура</span><span class="v">Docker, Docker Compose, Nginx, VPS, Git, Celery, APScheduler</span></div>
-        <div class="spec-row"><span class="k">Интеграции</span><span class="v">Telegram Bot API, Stripe, ЮKassa, СДЭК, Авито / WB / Ozon</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="sheet" data-reveal id="experience">
-    <div class="titleblock"><span>Лист <span class="no">04</span> — опыт</span><span>Журнал работ</span></div>
-    <div class="sheet-body">
-      <h2>С чем работал</h2>
-      <div class="log-table">
-        <div class="log-row">
-          <span class="log-cat">Боты</span>
-          <p>Telegram-боты для бизнеса под ключ: запись клиентов, продажи, поддержка — с FSM-логикой, оплатой и админ-панелью.</p>
-        </div>
-        <div class="log-row">
-          <span class="log-cat">Backend</span>
-          <p>REST API и сервисы для e-commerce и мессенджер-ботов, проектирование схем БД, оптимизация запросов и рефакторинг.</p>
-        </div>
-        <div class="log-row">
-          <span class="log-cat">Интеграции</span>
-          <p>Подключение платёжных систем и внешних API, адаптеры под маркетплейсы и службы доставки.</p>
-        </div>
-        <div class="log-row">
-          <span class="log-cat">Инфраструктура</span>
-          <p>Контейнеризация и деплой на VPS, настройка мониторинга, администрирование серверов и локальных сетей.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="sheet" data-reveal id="contact">
-    <div class="titleblock"><span>Лист <span class="no">05</span> — подрядчик</span><span>Контакты</span></div>
-    <div class="sheet-body">
-      <div class="stamp-wrap">
-        <div class="stamp">
-          <div class="stamp-title">Готов реализовать ваш проект</div>
-          <p>Опишите задачу — отвечу и скажу, что нужно для старта.</p>
-          <div class="contact-list">
-            <a href="https://t.me/laniakea_dev">Telegram · @laniakea_dev</a>
-            <a href="https://github.com/laniakeazero">GitHub · laniakeazero</a>
-            <a href="tel:+79963465159">+7 (996) 346-51-59</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer>Касаткин Сергей · Python Backend Developer · Москва, 2026</footer>
+<div id="crosshair">
+  <div class="h"></div><div class="v"></div>
+  <div class="coord" id="coord-readout">X0 Y0</div>
 </div>
 
-<script>
-  const els = document.querySelectorAll('[data-reveal]');
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-  }, {threshold:.12});
-  els.forEach(el=>io.observe(el));
+<!-- SHEET 00 — HERO -->
+<div class="sheet" id="sheet-00">
+  <div class="sheet-label"><span>Лист 00 — технический паспорт специалиста</span><span>скан 1:1</span></div>
+  <div class="corner-mark tl"></div>
+  <div class="corner-mark tr"></div>
+  <div class="corner-mark bl"></div>
+  <div class="corner-mark br"></div>
+  <div class="hero wrap">
+    <div>
+      <div class="kicker scramble-ready">Python Backend Developer · Боты</div>
+      <h1>Касаткин Сергей</h1>
+      <p>Помогаю бизнесу и стартапам превращать идеи в рабочие цифровые сервисы. Специализируюсь на backend-разработке, создании ботов и автоматизации процессов. Строю надёжную архитектуру от первого MVP до запуска в продакшен.</p>
+      <div class="cta-row">
+        <a href="#experience" class="btn primary">Опыт и стек</a>
+        <a href="#contact" class="btn ghost">Связаться</a>
+      </div>
+    </div>
+    <div class="photo-block">
+      <div class="photo-frame">
+        <img src="photo.png" alt="Касаткин Сергей" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <svg viewBox="0 0 100 100" fill="none" stroke="var(--ink)" stroke-width="1.4" style="display:none;"><circle cx="50" cy="36" r="16"/><path d="M20 88c0-18 13-30 30-30s30 12 30 30"/></svg>
+        <div class="scan-line"></div>
+        <div class="ph-label">портрет · 3×4</div>
+      </div>
+      <div class="stamp">действителен<br>2026</div>
+    </div>
+  </div>
+</div>
 
-  document.querySelectorAll('[data-flip-card]').forEach(card => {
-    const toggle = () => card.classList.toggle('is-flipped');
-    card.addEventListener('click', toggle);
-    card.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggle();
+<div class="perf"></div>
+
+<!-- SHEET 01 — О СЕБЕ + STATS -->
+<section id="sheet-01">
+  <div class="wrap">
+    <div class="sec-label"><span>Лист 01 — о специалисте</span><span>Москва · IT</span></div>
+    <svg class="draw-line fade-up" viewBox="0 0 400 2" preserveAspectRatio="none"><path d="M0,1 L400,1"/></svg>
+    <h2 class="fade-up">О себе</h2>
+    <p class="fade-up" style="max-width:66ch; color:var(--ink-soft); font-size:15.5px; margin-bottom:34px;">
+      Пишу backend-сервисы, REST API и Telegram-ботов на Python (FastAPI, aiogram 3) и Node.js (Express) — от e-commerce до мессенджер-ботов с FSM-логикой, платежами и админками. С 2022 года — IT-специалист на частной практике: обслуживание техники, администрирование 1С и MySQL, развёртывание VPS, локальные сети. С 2024 — фриланс-разработка backend как основное направление.
+    </p>
+    <div class="stats fade-up">
+      <div class="stat"><div class="num" data-count="2">0</div><div class="lbl">года backend с 2024</div></div>
+      <div class="stat"><div class="num" data-count="2022" data-raw="true">0</div><div class="lbl">старт IT-практики</div></div>
+      <div class="stat"><div class="num" data-count="12">0</div><div class="lbl">проектов сдано</div></div>
+      <div class="stat"><div class="num" data-count="100">0</div><div class="lbl">% на удалёнке</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SHEET 02 — УСЛУГИ -->
+<section id="sheet-02">
+  <div class="wrap">
+    <div class="sec-label"><span>Лист 02 — услуги</span><span>условные обозначения</span></div>
+    <svg class="draw-line fade-up" viewBox="0 0 400 2" preserveAspectRatio="none"><path d="M0,1 L400,1"/></svg>
+    <h2 class="fade-up">Что делаю</h2>
+    <div class="services fade-up">
+      <div class="svc">
+        <div class="svc-inner">
+          <div class="code">01 / BOT</div>
+          <h3>Боты</h3>
+          <ul>
+            <li>Бот для записи клиентов в салон</li>
+            <li>Бот для приёма заявок и напоминаний</li>
+            <li>Чат-ассистент с FSM, базой и CRM</li>
+          </ul>
+        </div>
+      </div>
+      <div class="svc">
+        <div class="svc-inner">
+          <div class="code">02 / API</div>
+          <h3>Бэкенд</h3>
+          <ul>
+            <li>REST API для интернет-магазина</li>
+            <li>Сервис для обработки заказов и статусов</li>
+            <li>Админка и внутренние панели управления</li>
+          </ul>
+        </div>
+      </div>
+      <div class="svc">
+        <div class="svc-inner">
+          <div class="code">03 / AUTO</div>
+          <h3>Интеграции</h3>
+          <ul>
+            <li>Интеграция Stripe и ЮKassa</li>
+            <li>Подключение СДЭК и статусов доставки</li>
+            <li>Адаптеры под Авито, WB и Ozon</li>
+          </ul>
+        </div>
+      </div>
+      <div class="svc">
+        <div class="svc-inner">
+          <div class="code">04 / SHOP</div>
+          <h3>E-commerce</h3>
+          <ul>
+            <li>Витрина для продажи товаров в Telegram</li>
+            <li>Админка для управления каталогом</li>
+            <li>Платёжный и логистический сценарий под клиента</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <span>PYTHON 3</span><span class="accent">FASTAPI</span><span>AIOGRAM 3</span><span class="accent">POSTGRESQL</span><span>DOCKER</span><span class="accent">REDIS</span><span>NODE.JS</span><span class="accent">NGINX</span><span>CELERY</span><span class="accent">STRIPE</span><span>ЮKASSA</span><span class="accent">TELEGRAM API</span>
+    <span>PYTHON 3</span><span class="accent">FASTAPI</span><span>AIOGRAM 3</span><span class="accent">POSTGRESQL</span><span>DOCKER</span><span class="accent">REDIS</span><span>NODE.JS</span><span class="accent">NGINX</span><span>CELERY</span><span class="accent">STRIPE</span><span>ЮKASSA</span><span class="accent">TELEGRAM API</span>
+  </div>
+</div>
+
+<!-- SHEET 03 — ФРАГМЕНТ КОДА -->
+<section id="sheet-03">
+  <div class="wrap">
+    <div class="sec-label"><span>Лист 03 — фрагмент</span><span>исходный код</span></div>
+    <svg class="draw-line fade-up" viewBox="0 0 400 2" preserveAspectRatio="none"><path d="M0,1 L400,1"/></svg>
+    <h2 class="fade-up">Как это устроено внутри</h2>
+    <p class="fade-up" style="color:var(--ink-soft); font-size:15px; max-width:64ch; margin-bottom:26px; margin-top:-14px;">
+      Фрагмент реальной FSM-логики записи клиента в Telegram-боте на aiogram 3 — выбор услуги, проверка занятости слота и запись в БД одним переходом состояния.
+    </p>
+
+    <div class="code-window fade-up" id="code-window">
+      <div class="code-titlebar">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="fname scramble-ready">booking_handlers.py</span>
+        <button id="run-code-btn" class="run-btn">[ RUN ]</button>
+      </div>
+      <div class="code-body">
+        <pre id="code-lines"><span class="code-line"><span class="ln">1</span><span class="tok-dec">@router.callback_query</span>(BookingFSM.choosing_slot)</span><span class="code-line"><span class="ln">2</span><span class="tok-kw">async def</span> <span class="tok-fn">select_slot</span>(callback: CallbackQuery, state: FSMContext):</span><span class="code-line"><span class="ln">3</span>    slot_id = <span class="tok-fn">int</span>(callback.data.split(<span class="tok-str">"_"</span>)[-<span class="tok-num">1</span>])</span><span class="code-line"><span class="ln">4</span>    <span class="tok-com"># проверяем, что слот ещё свободен на момент нажатия</span></span><span class="code-line"><span class="ln">5</span>    <span class="tok-kw">async with</span> db.session() <span class="tok-kw">as</span> session:</span><span class="code-line"><span class="ln">6</span>        slot = <span class="tok-kw">await</span> session.get(Slot, slot_id, with_for_update=<span class="tok-kw">True</span>)</span><span class="code-line"><span class="ln">7</span></span><span class="code-line"><span class="ln">8</span>        <span class="tok-kw">if</span> slot <span class="tok-kw">is</span> <span class="tok-kw">None</span> <span class="tok-kw">or</span> slot.is_booked:</span><span class="code-line"><span class="ln">9</span>            <span class="tok-kw">await</span> callback.answer(<span class="tok-str">"Слот уже заняли, выберите другой"</span>, show_alert=<span class="tok-kw">True</span>)</span><span class="code-line"><span class="ln">10</span>            <span class="tok-kw">return</span> <span class="tok-kw">await</span> <span class="tok-fn">show_available_slots</span>(callback.message, state)</span><span class="code-line"><span class="ln">11</span></span><span class="code-line"><span class="ln">12</span>        slot.is_booked = <span class="tok-kw">True</span></span><span class="code-line"><span class="ln">13</span>        <span class="tok-kw">await</span> state.update_data(slot_id=slot.id, master_id=slot.master_id)</span><span class="code-line"><span class="ln">14</span>        <span class="tok-kw">await</span> session.commit()</span><span class="code-line"><span class="ln">15</span></span><span class="code-line"><span class="ln">16</span>    <span class="tok-kw">await</span> state.set_state(BookingFSM.confirming)</span><span class="code-line"><span class="ln">17</span>    <span class="tok-kw">await</span> callback.message.edit_text(</span><span class="code-line"><span class="ln">18</span>        <span class="tok-fn">format_confirmation</span>(slot), reply_markup=confirm_kb()</span><span class="code-line"><span class="ln">19</span>    )<span class="code-caret" id="code-caret"></span></span></pre>
+      </div>
+      <div id="terminal-output" class="terminal-output">
+        <div id="log-container"></div>
+      </div>
+    </div>
+
+    <p class="code-note fade-up">
+      <b>Почему это важно:</b> запись слота идёт через блокировку строки в БД (<code>with_for_update</code>) — двое клиентов физически не смогут занять один и тот же слот одновременно, даже если нажмут кнопку в одну секунду. Это то, что отличает рабочий продакшен-код от бота «для галочки».
+    </p>
+  </div>
+</section>
+
+<!-- SHEET 04 — СТЕК -->
+<section id="sheet-04">
+  <div class="wrap">
+    <div class="sec-label"><span>Лист 04 — стек</span><span>спецификация материалов</span></div>
+    <svg class="draw-line fade-up" viewBox="0 0 400 2" preserveAspectRatio="none"><path d="M0,1 L400,1"/></svg>
+    <h2 class="fade-up">Технологии</h2>
+
+    <div class="chip-group fade-up">
+      <div class="g-title">Языки / фреймворки</div>
+      <div class="chip-row">
+        <span class="chip scramble-ready">Python 3</span><span class="chip scramble-ready">FastAPI</span><span class="chip scramble-ready">aiogram 3</span><span class="chip scramble-ready">Node.js</span><span class="chip scramble-ready">Express</span><span class="chip scramble-ready">SQLAlchemy 2</span><span class="chip scramble-ready">Pydantic v2</span><span class="chip scramble-ready">Next.js</span><span class="chip scramble-ready">React</span>
+      </div>
+    </div>
+
+    <div class="chip-group fade-up">
+      <div class="g-title">Базы данных / инфраструктура</div>
+      <div class="chip-row">
+        <span class="chip scramble-ready">PostgreSQL</span><span class="chip scramble-ready">MySQL</span><span class="chip scramble-ready">Redis</span><span class="chip scramble-ready">Celery</span><span class="chip scramble-ready">APScheduler</span><span class="chip scramble-ready">Docker</span><span class="chip scramble-ready">Nginx</span><span class="chip scramble-ready">VPS / Linux</span>
+      </div>
+    </div>
+
+    <div class="chip-group fade-up">
+      <div class="g-title">Интеграции</div>
+      <div class="chip-row">
+        <span class="chip scramble-ready">Telegram Bot API</span><span class="chip scramble-ready">Stripe</span><span class="chip scramble-ready">ЮKassa</span><span class="chip scramble-ready">СДЭК</span><span class="chip scramble-ready">Авито API</span><span class="chip scramble-ready">Wildberries</span><span class="chip scramble-ready">Ozon</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHEET 05 — ОПЫТ (journal) + процесс -->
+<section id="sheet-05">
+  <div class="wrap">
+    <div class="sec-label"><span>Лист 05 — опыт</span><span>журнал работ</span></div>
+    <svg class="draw-line fade-up" viewBox="0 0 400 2" preserveAspectRatio="none"><path d="M0,1 L400,1"/></svg>
+    <h2 class="fade-up" id="experience">С чем работал</h2>
+
+    <div class="journal fade-up">
+      <div class="j-entry">
+        <div class="j-num">ЗАПИСЬ 01</div>
+        <h3>Боты</h3>
+        <p>Telegram-боты для бизнеса под ключ: запись клиентов, продажи, поддержка — с FSM-логикой, оплатой и админ-панелью.</p>
+      </div>
+      <div class="j-entry">
+        <div class="j-num">ЗАПИСЬ 02</div>
+        <h3>Backend</h3>
+        <p>REST API и сервисы для e-commerce и мессенджер-ботов, проектирование схем БД, оптимизация запросов и рефакторинг.</p>
+      </div>
+      <div class="j-entry">
+        <div class="j-num">ЗАПИСЬ 03</div>
+        <h3>Интеграции</h3>
+        <p>Подключение платёжных систем и внешних API, адаптеры под маркетплейсы и службы доставки.</p>
+      </div>
+      <div class="j-entry">
+        <div class="j-num">ЗАПИСЬ 04</div>
+        <h3>Инфраструктура</h3>
+        <p>Контейнеризация и деплой на VPS, настройка мониторинга, администрирование серверов и локальных сетей.</p>
+      </div>
+    </div>
+
+    <div class="g-title fade-up" style="margin-top:40px;">Как проходит работа</div>
+    <div class="process fade-up" id="process">
+      <div class="process-track"><div class="process-fill" id="process-fill"></div></div>
+      <div class="process-steps">
+        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Заявка</b><span>Короткое описание задачи в Telegram или почте</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Бриф</b><span>Созваниваемся, уточняем детали, сроки и бюджет</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Разработка</b><span>Пишу код, показываю промежуточные результаты</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Тест</b><span>Проверяем вместе на реальных сценариях</span></div></div>
+        <div class="proc-step"><span class="proc-dot"></span><div class="proc-txt"><b>Прод</b><span>Разворачиваю на сервере, передаю в работу</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHEET 06 — CONTACT -->
+<section id="sheet-06" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="sec-label"><span>Лист 06 — подрядчик</span><span>контакты</span></div>
+    <div class="contact-box fade-up" id="contact">
+      <h2>Готов реализовать ваш проект</h2>
+      <p>Опишите задачу — отвечу и скажу, что нужно для старта.</p>
+      <div class="contact-links">
+        <a href="https://t.me/laniakea_dev" class="btn primary">Telegram · @laniakea_dev</a>
+        <a href="https://github.com/laniakeazero" class="btn ghost">GitHub · laniakeazero</a>
+        <a href="tel:+79963465159" class="btn ghost">+7 (996) 346-51-59</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>Касаткин Сергей · Python Backend Developer · Москва, 2026</footer>
+
+<script>
+  // Scroll progress ruler
+  const rulerFill = document.getElementById('ruler-fill');
+  function updateRuler(){
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    rulerFill.style.width = scrolled + '%';
+  }
+  document.addEventListener('scroll', updateRuler, {passive:true});
+  updateRuler();
+
+  // Custom crosshair cursor with coordinate readout
+  const crosshair = document.getElementById('crosshair');
+  const coordReadout = document.getElementById('coord-readout');
+  const isTouch = window.matchMedia('(hover:none)').matches;
+  if(!isTouch){
+    window.addEventListener('mousemove', (e)=>{
+      crosshair.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+      coordReadout.textContent = `X${String(e.clientX).padStart(4,'0')} Y${String(e.clientY).padStart(4,'0')}`;
+    });
+    document.addEventListener('mouseleave', ()=>{
+      crosshair.style.transform = 'translate(-9999px,-9999px)';
+    });
+  }
+
+  /* ---------- WOW-FEATURE 1: text scramble on hover ---------- */
+  class TextScramble {
+    constructor(el) {
+      this.el = el;
+      this.chars = '!<>-_\\/[]{}—=+*^?#________01';
+      this.update = this.update.bind(this);
+    }
+    setText(newText) {
+      const oldText = this.el.innerText;
+      const length = Math.max(oldText.length, newText.length);
+      this.queue = [];
+      for (let i = 0; i < length; i++) {
+        const from = oldText[i] || '';
+        const to = newText[i] || '';
+        const start = Math.floor(Math.random() * 20);
+        const end = start + Math.floor(Math.random() * 20);
+        this.queue.push({ from, to, start, end });
       }
+      cancelAnimationFrame(this.frameId);
+      this.frame = 0;
+      this.update();
+    }
+    update() {
+      let output = '';
+      let complete = 0;
+      for (let i = 0, n = this.queue.length; i < n; i++) {
+        let { from, to, start, end, char } = this.queue[i];
+        if (this.frame >= end) {
+          complete++;
+          output += to;
+        } else if (this.frame >= start) {
+          if (!char || Math.random() < 0.28) {
+            char = this.chars[Math.floor(Math.random() * this.chars.length)];
+            this.queue[i].char = char;
+          }
+          output += `<span style="color:var(--stamp); opacity:0.7;">${char}</span>`;
+        } else {
+          output += from;
+        }
+      }
+      this.el.innerHTML = output;
+      if (complete === this.queue.length) return;
+      this.frameId = requestAnimationFrame(this.update);
+      this.frame++;
+    }
+  }
+  document.querySelectorAll('.scramble-ready').forEach(el => {
+    const fx = new TextScramble(el);
+    const originalText = el.getAttribute('data-text') || el.innerText;
+    el.addEventListener('mouseenter', () => fx.setText(originalText));
+  });
+  document.querySelectorAll('h2').forEach(el => {
+    el.classList.add('scramble-ready');
+    const fx = new TextScramble(el);
+    const originalText = el.innerText;
+    el.addEventListener('mouseenter', () => fx.setText(originalText));
+  });
+
+  /* ---------- WOW-FEATURE 2: kinetic 3D tilt on service cards ---------- */
+  document.querySelectorAll('.svc').forEach(card => {
+    const inner = card.querySelector('.svc-inner');
+    if(!inner) return;
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const xc = rect.width / 2;
+      const yc = rect.height / 2;
+      const angleX = (yc - y) / yc * 10;
+      const angleY = (x - xc) / xc * 10;
+      inner.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      inner.style.transform = 'none';
     });
   });
+
+  /* ---------- WOW-FEATURE 3: interactive RUN CODE console ---------- */
+  const runBtn = document.getElementById('run-code-btn');
+  const termOutput = document.getElementById('terminal-output');
+  const logContainer = document.getElementById('log-container');
+  if(runBtn){
+    runBtn.addEventListener('click', () => {
+      termOutput.style.height = '78px';
+      logContainer.innerHTML = `<span class="log-info">[INFO]</span> Executing async select_slot()...`;
+
+      setTimeout(() => {
+        logContainer.innerHTML += `<br><span class="log-db">[DB]</span> row_lock acquired (with_for_update=True)`;
+      }, 400);
+
+      setTimeout(() => {
+        logContainer.innerHTML += `<br><span class="log-ok">[SUCCESS]</span> state → BookingFSM.confirming · 4.2ms`;
+        const cw = document.getElementById('code-window');
+        cw.style.transform = 'scale(1.008)';
+        setTimeout(() => cw.style.transform = 'none', 120);
+      }, 900);
+    });
+  }
+
+  // Code snippet: line-by-line reveal
+  const codeWindow = document.getElementById('code-window');
+  if(codeWindow){
+    const codeLines = codeWindow.querySelectorAll('.code-line');
+    const caret = document.getElementById('code-caret');
+    const codeIO = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          codeLines.forEach((line, i)=>{
+            setTimeout(()=>{
+              line.classList.add('in');
+              if(i === codeLines.length - 1 && caret){
+                setTimeout(()=>caret.classList.add('show'), 200);
+              }
+            }, i * 55);
+          });
+          codeIO.unobserve(codeWindow);
+        }
+      });
+    }, {threshold:.25});
+    codeIO.observe(codeWindow);
+  }
+
+  // Fade-up on scroll
+  const faders = document.querySelectorAll('.fade-up');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); }
+    });
+  }, {threshold:.15});
+  faders.forEach(f=>io.observe(f));
+
+  // Active sheet number in topbar
+  const sheets = document.querySelectorAll('[id^="sheet-"]');
+  const activeLabel = document.getElementById('active-sheet');
+  const sheetIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const n = e.target.id.split('-')[1];
+        activeLabel.textContent = n;
+      }
+    });
+  }, {threshold:.5});
+  sheets.forEach(s=>sheetIO.observe(s));
+
+  // Counters
+  const counters = document.querySelectorAll('.stat .num');
+  const countIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const el = e.target;
+        const target = parseInt(el.dataset.count,10);
+        let cur = 0;
+        const step = Math.max(1, Math.round(target/40));
+        const t = setInterval(()=>{
+          cur += step;
+          if(cur>=target){ cur=target; clearInterval(t); }
+          el.textContent = cur;
+        }, 25);
+        countIO.unobserve(el);
+      }
+    });
+  }, {threshold:.6});
+  counters.forEach(c=>countIO.observe(c));
+
+  // Tech chips: staggered reveal
+  const chipGroups = document.querySelectorAll('.chip-group');
+  const chipIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const chips = e.target.querySelectorAll('.chip');
+        chips.forEach((chip,i)=>{
+          setTimeout(()=>chip.classList.add('in'), i*45);
+        });
+        chipIO.unobserve(e.target);
+      }
+    });
+  }, {threshold:.3});
+  chipGroups.forEach(g=>chipIO.observe(g));
+
+  // Honest process flow: line draws, dots pop in sequence
+  const processEl = document.getElementById('process');
+  if(processEl){
+    const fill = document.getElementById('process-fill');
+    const dots = processEl.querySelectorAll('.proc-dot');
+    const processIO = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          fill.style.width = '100%';
+          dots.forEach((dot,i)=>{
+            setTimeout(()=>dot.classList.add('in'), 200 + i*260);
+          });
+          processIO.unobserve(processEl);
+        }
+      });
+    }, {threshold:.4});
+    processIO.observe(processEl);
+  }
 </script>
 
 </body>
